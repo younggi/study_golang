@@ -5,6 +5,6 @@ func Hanoi(n int) {
 
 }
 
-// func main() {
-//
-// }
+func main() {
+
+}
