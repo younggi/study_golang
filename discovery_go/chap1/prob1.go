@@ -8,6 +8,6 @@ func printTazan(n int) {
 	}
 }
 
-func main() {
-	printTazan(10)
-}
+// func main() {
+// 	printTazan(10)
+// }
