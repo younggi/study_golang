@@ -63,4 +63,4 @@
 
 ### 그래프의 인접 리스트 읽고 쓰기
   * Data를 읽어서 이차원 슬라이스에 넣기
-  * bytes.NewBuffer(nil) 과 strings.NewReader("...") 를 이용하면 테스트 용이 
+  * bytes.NewBuffer(nil) 과 strings.NewReader("...") 를 이용하면 테스트 용이
