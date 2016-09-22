@@ -51,5 +51,16 @@
 ### io.Reader와 io.Writer
   * 표준 입출력, 파일, 네트워크에 바이트를 읽고 쓸수 있는 인터페이스
 
-### 파일 읽기
-  * 
+### 파일 읽기, 쓰기
+  1. File Open or Create : return File Handle  
+  2. Read or Write : with File Handle & Data
+  3. Close File Handle : use defer
+
+### 텍스트 리스트 읽고 쓰기
+  * io.Reader & io.Writer use like File Handle
+  * Read from io.Reader
+  * Write to io.Writer
+
+### 그래프의 인접 리스트 읽고 쓰기
+  * Data를 읽어서 이차원 슬라이스에 넣기
+  * bytes.NewBuffer(nil) 과 strings.NewReader("...") 를 이용하면 테스트 용이 
