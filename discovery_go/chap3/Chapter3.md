@@ -13,7 +13,7 @@
   * 순서가 없음
   * 초기화 필요 (생성)
 
-  ```
+  ```go
   var m map[keyType]valueType
   m := make(map[keyType]valueType)
   m := map[keyType]valueType{}
@@ -22,7 +22,7 @@
   * 해당 키가 없으면 값의 자료형의 기본값을 반환
   * 존재 여부를 두번째 변수로 받음 (bool 형)
 
-  ```
+  ```go
   value, ok := m[key]
   m[key] = value
   ```
