@@ -121,6 +121,7 @@
 ### 인자 고정
   * 함수를 리턴하는 고계 함수를 만들고 그것을 인자로 넣으면서 인자를 고정한다.  
   * m 고정 => m을 ReadFrom 함수의 인자로 만든다.
+    * m 이 Insert의 인자인데, 매번 같이 호출하지 않아도 되도록 고정한다.
 
   ```go
   m := NewMultiSet()
@@ -144,3 +145,101 @@
 ### 자료구조에 담은 함수
   * 함수를 자료구조에 담을 수 있음
   * struct 에 func 를 담을 수 있다.
+
+## 메서드
+  * 리시버(Receiver)가 붙는 함수는 메서드라고 부름
+  * 메서드 내에서 리시버를 참조하여 사용할 수 있다.
+
+  ```go
+  func (recv T) MethodName(p1 T1, p2 T2) R1
+  ```
+
+### 단순 자료형 메서드
+  * 모든 명명된 자료형에 메서드를 정의 가능
+
+  ```go
+  type VertexID int
+
+  func (id VertexID) String() string {
+    return fmt.Sprintf("VertexId(%d)",id)
+  }
+  ```
+
+### 문자열 다중 집합
+  * 자료형에 이름을 붙인다.
+  * 그다음 메서드 정의
+  * 자료 추상화를 가능하게 함
+
+  ```go
+  type MultiSet map[string]int
+
+  func (m MultiSet) Insert(val string) {
+    m[val]++
+  }
+
+  func (m MultiSet) Erase(val string) {
+    if m[val] <= 1 {
+      delete(m, val)
+    } else {
+      m[val]--
+    }
+  }
+  ```
+
+  func (m MultiSet) Count(val string) {
+    return m[val]
+  }
+
+  func (m MultiSet) String() string {
+    s := "{ "
+    for val, count := range m {
+      s += strings.Repeat(val + " ", count)
+    }
+    return s + "}"
+  }
+
+### 포인터 리시버
+  * 자료형이 포인터인 리시버
+  * 메서드 인자로 값의 변경이 필요해서 포인터가 필요한 경우 포인터 리시버로 사용한다.
+  * 리시버의 이름은 길게 붙이지 않는다.
+
+  ```go
+  type Graph [][]int
+
+  func WriteTo(w io.Writer, adjList [][]int) error
+  func ReadFrom(r io.Reader, adjList *[][]int) error
+
+  func (adjList Graph) WriteTo(w io.Writer) error
+  func (adjList *Graph) ReadFrom(r io.Reader) error
+  ```
+
+### 공개 및 비공개
+  * 공걔: 이름이 대분자로 시작
+  * 비공개: 이름이 소문자로 시작
+  * 적용 대상: 메서드, 자료형, 변수, 상수, 함수
+
+## 활용
+  * 라이브러리 활용법
+
+### 타이머 활용하기
+  * ```time.Sleep``` : blocking timer
+  * ```time.Timer*``` : non-blocking timer
+  * 비동기 상황에서 사용되는 기술: 콜백
+    * 어떤 조건이 만족될때 호출해 달라고 요청하는 것
+  * 라이브러리중 함수를 인자로 받는 것은 콜백 호출을 하는 것임
+
+  ```go
+  time.AfterFunc(5*time.Second, func() {
+    // 메세지를 없애는 코드
+    // 비동기적으로 실행하고자 하는 코드
+    fmt.Println("I am so excited!")
+  })
+
+  // 강제 타이머 종료
+  time.Stop()
+  ```
+
+### path/filepath 패키지
+  * [Walk](https://golang.org/pkg/path/filepath/#Walk)
+    * 지정된 디렉터리 경로 아래에 있는 파일에 대해 어떤 일을 할 수 있는 함수
+    * 고계함수
