@@ -275,3 +275,50 @@ func ExampleJoin() {
 	// Output:
 	// 1,two,3,[v] Laundry <nil>
 }
+
+func (t *Task) MarkDone() {
+	t.Status = DONE
+	for i := 0; i < len(t.SubTasks); i++ {
+		t.SubTasks[i].MarkDone()
+	}
+}
+
+func ExampleMarkDone() {
+	t := &(Task{
+		Title:    "Laundry",
+		Status:   TODO,
+		Deadline: nil,
+		Priority: 2,
+		SubTasks: []Task{{
+			Title:    "Wash",
+			Status:   TODO,
+			Deadline: nil,
+			Priority: 2,
+			SubTasks: []Task{
+				{"Put", DONE, nil, 2, nil},
+				{"Detergent", TODO, nil, 2, nil},
+			},
+		}, {
+			Title:    "Dry",
+			Status:   TODO,
+			Deadline: nil,
+			Priority: 2,
+			SubTasks: nil,
+		}, {
+			Title:    "Fold",
+			Status:   TODO,
+			Deadline: nil,
+			Priority: 2,
+			SubTasks: nil,
+		}},
+	})
+	t.MarkDone()
+	fmt.Println(IncludeSubTasks(*t))
+	// Output:
+	// [v] Laundry <nil>
+	//   [v] Wash <nil>
+	//     [v] Put <nil>
+	//     [v] Detergent <nil>
+	//   [v] Dry <nil>
+	//   [v] Fold <nil>
+}
