@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"testing"
 )
 
 type CaseInsensitive []string
@@ -30,6 +31,29 @@ func ExampleCaseInsensitive_sort() {
 	fmt.Println(apple)
 	// Output:
 	// [AppStore iPad iPhone MackBook]
+}
+
+func TestCaseIntensiveSort(t *testing.T) {
+	cases := []struct {
+		in, want CaseInsensitive
+	}{
+		{
+			CaseInsensitive{"iPhone", "iPad", "MacBook", "AppStore"},
+			CaseInsensitive{"AppStore", "iPad", "iPhone", "MacBook"},
+		},
+		{
+			CaseInsensitive{"1", "7", "3", "5"},
+			CaseInsensitive{"1", "3", "5", "7"},
+		},
+	}
+	for _, c := range cases {
+		sort.Sort(c.in)
+		for i := 0; i < len(c.in); i++ {
+			if c.in[i] != c.want[i] {
+				t.Errorf("[%d] %s == %s, want %s", i, c.in[i], c.want[i], c.want[i])
+			}
+		}
+	}
 }
 
 func (c *CaseInsensitive) Push(x interface{}) {
