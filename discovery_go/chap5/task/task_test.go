@@ -1,4 +1,4 @@
-package deadline2
+package task
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -192,4 +193,85 @@ func ExampleTask_String() {
 	fmt.Println(Task{"Laundry", DONE, nil, 0, nil})
 	// Output:
 	// [v] Laundry <nil>
+}
+
+type IncludeSubTasks Task
+
+func (t IncludeSubTasks) indentedString(prefix string) string {
+	str := prefix + Task(t).String()
+	for _, st := range t.SubTasks {
+		str += "\n" + IncludeSubTasks(st).indentedString(prefix+"  ")
+	}
+	return str
+}
+
+func (t IncludeSubTasks) String() string {
+	return t.indentedString("")
+}
+
+func ExampleIncludeSubTasks_String() {
+	fmt.Println(IncludeSubTasks(Task{
+		Title:    "Laundry",
+		Status:   TODO,
+		Deadline: nil,
+		Priority: 2,
+		SubTasks: []Task{{
+			Title:    "Wash",
+			Status:   TODO,
+			Deadline: nil,
+			Priority: 2,
+			SubTasks: []Task{
+				{"Put", DONE, nil, 2, nil},
+				{"Detergent", TODO, nil, 2, nil},
+			},
+		}, {
+			Title:    "Dry",
+			Status:   TODO,
+			Deadline: nil,
+			Priority: 2,
+			SubTasks: nil,
+		}, {
+			Title:    "Fold",
+			Status:   TODO,
+			Deadline: nil,
+			Priority: 2,
+			SubTasks: nil,
+		}},
+	}))
+	// Output:
+	// [ ] Laundry <nil>
+	//   [ ] Wash <nil>
+	//     [v] Put <nil>
+	//     [ ] Detergent <nil>
+	//   [ ] Dry <nil>
+	//   [ ] Fold <nil>
+}
+
+func Join(sep string, a ...interface{}) string {
+	if len(a) == 0 {
+		return ""
+	}
+	t := make([]string, len(a))
+	for i := range a {
+		switch x := a[i].(type) {
+		case string:
+			t[i] = x
+		case int:
+			t[i] = strconv.Itoa(x)
+		case fmt.Stringer:
+			t[i] = x.String()
+		}
+	}
+	return strings.Join(t, sep)
+}
+
+func ExampleJoin() {
+	t := Task{
+		Title:    "Laundry",
+		Status:   DONE,
+		Deadline: nil,
+	}
+	fmt.Println(Join(",", 1, "two", 3, t))
+	// Output:
+	// 1,two,3,[v] Laundry <nil>
 }

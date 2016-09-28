@@ -194,3 +194,105 @@
   * Gob
     * Go 언어에서만 읽고 쓸수 있는 형태이고, 모두 Go로 되어 있을 경우 고려
     * gob.NewEncoder, gob.NewDecoder 생성하고 여기에 io.Writer, io.Reader를 넘긴다.
+
+## 인터페이스
+  * 인터페이스: 메서드 들의 묶음
+    * 무언가를 할 수 있는 것을 의미
+    * 인터페이스 명명: 인터페이스 메서드에 ```er```을 붙임
+  * 구조체: 자료들의 묶음
+
+### 인터페이스의 정의
+  * 구조체와 유사
+
+  ```go
+  interface {
+    Method1()
+    Method2(i int) error
+  }
+  ```
+
+  * 인터페이스 이름
+
+  ```go
+  type Loader interface {
+    Load(filename string) error
+  }
+  ```
+
+  * 인터페이스 합치기: 구조체 내장과 비슷한 방식
+
+  ```go
+  type ReadWriter {
+    io.Reader
+    io.Writer
+  }
+  ```
+
+### 커스텀 프린터
+  * 이름 붙인 자료형의 출력 양식 지정: String() 함수 정의
+  * 프린트만을 위한 type을 별도로 지정하여 기존 type을 다른 방식으로 출력 지정 가능
+
+  ```go
+  type Task struct {
+    ...
+  }
+
+  type IncludeSubTasks Task
+
+  func (t IncludeSubTasks) String() string {
+    ...
+  }
+  ```
+
+### 정렬과 힙
+  * Go의 sort.Sort에서 이용하는 방법은 비교 정렬이자 불안정 정렬(unstable sort)임.
+
+  * 정렬 인터페이스의 구현
+    * 제네릭은 지원하지 않지만, 인터페이스를 지원하여 다양한 형태 정렬 수행 가능
+    * ```sort.Interface```를 따르면 정렬 가능
+    * 새로운 이름을 타입을 정의하기만 하면 같은 자료형에 각각 다른 방식의 정렬을 구현할 수 있음
+
+  * 정렬 알고리즘
+    * 기본적으로 빠른 정렬(Quicksort)이고, 최악의 경우를 피하기 위하여 중위법(피벗 3개를 골라서 가운데 값을 고름)  
+    * 너무 깊이 빠른 정렬에 빠지면 힙 정렬을 이용
+    * 자료가 7개 이하일 경우 삽입 정렬
+
+  * 힙
+    * 자료 중에 가장 작은 값을 O(logN)의 시간 복잡도로 꺼낼 수 있는 자료구조
+    * sort.Interface를 내장하고 있으므로 5개의 메서드 구현(3+2)
+    * 정렬이 끝나지 않은 상황에서도 지금까지 정렬된 자료를 이용할 수 있음
+      - 선택 정렬의 일종
+    * 우선 순위 큐: 가장 낮은 값부터 소비  
+
+### 외부 의존성 줄이기
+  * 개발 시 인터페이스를 사용하도록 개발하면
+  * 테스트 시 인터페이스를 활용하여 실제 대상 대신 테스트용 개체 사용가능
+
+### 빈 인터페이스와 형 단언
+  * 나열된 메서드들을 정의하고 있는 자료형은 인터페이스로 취급 될 수 있다.
+  * 빈 인터페이스는 아무 자료형이나 취급할 수 있음
+  * 형변환 (from interface{})
+    * 자료형 변환과 다름 ```형(값)``` 형식
+    * 형 단언(type assertion): 형변환이 실행 시간에 자료형이 맞는지 검사를 수행함
+      - 실행시간에 내가 단언한 형이 아니면 패닉이 발생됨
+      - ```popped.(string)``` : interface{} 형인 popped를 string으로 단언함
+    * Panic 방지를 위해 변환 여부를 추가로 리턴 받음
+
+    ```go
+    var r io.Reader = NewReader()
+    f, ok := r.(os.File)
+    ```
+
+### 인터페이스 변환 스위치
+  * 인터페이스가 특정 자료형일 경우에 switch를 통하여 각 자료형 별 행위를 구현 할 수 있다.
+
+  ```go
+  switch x := a[i].(type) {
+  case string:
+    t[i] = x
+  case int:
+    t[i] = strconv.Itoa(x)
+  case fmt.Stringer:
+    t[i] = x.String()
+  }
+  ```
