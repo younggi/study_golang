@@ -10,7 +10,8 @@ import (
 
 // ResponseError is the error for the JSON Response
 type ResponseError struct {
-	Err error
+	Err  error
+	Code int
 }
 
 // MarshalJSON returns the JSON representation of the error.
@@ -49,4 +50,17 @@ type Response struct {
 	ID    task.ID       `json:"id,omitempty"`
 	Task  task.Task     `json:"task"`
 	Error ResponseError `json:"error"`
+}
+
+// NewResponse builds a new object of Response
+func NewResponse(id task.ID, t task.Task, err error) *Response {
+	code := 200
+	if err != nil {
+		code = 500
+	}
+	return &Response{
+		ID:    id,
+		Task:  t,
+		Error: ResponseError{err, code},
+	}
 }

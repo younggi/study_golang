@@ -38,14 +38,12 @@ func getTasks(r *http.Request) ([]task.Task, error) {
 func apiGetHandler(w http.ResponseWriter, r *http.Request) {
 	id := task.ID(mux.Vars(r)["id"])
 	t, err := m.Get(id)
-	err = json.NewEncoder(w).Encode(Response{
-		ID:    id,
-		Task:  t,
-		Error: ResponseError{err},
-	})
+	resp := NewResponse(id, t, err)
+	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		log.Println(err)
 	}
+	w.WriteHeader(resp.Error.Code)
 }
 
 func apiPutHandler(w http.ResponseWriter, r *http.Request) {
@@ -57,15 +55,13 @@ func apiPutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, t := range tasks {
 		err = m.Put(id, t)
-		err = json.NewEncoder(w).Encode(Response{
-			ID:    id,
-			Task:  t,
-			Error: ResponseError{err},
-		})
+		resp := NewResponse(id, t, err)
+		err = json.NewEncoder(w).Encode(resp)
 		if err != nil {
 			log.Println(err)
 			return
 		}
+		w.WriteHeader(resp.Error.Code)
 	}
 }
 
@@ -77,29 +73,26 @@ func apiPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, t := range tasks {
 		id, err := m.Post(t)
-		err = json.NewEncoder(w).Encode(Response{
-			ID:    id,
-			Task:  t,
-			Error: ResponseError{err},
-		})
+		resp := NewResponse(id, t, err)
+		err = json.NewEncoder(w).Encode(resp)
 		if err != nil {
 			log.Println(err)
 			return
 		}
+		w.WriteHeader(resp.Error.Code)
 	}
 }
 
 func apiDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	id := task.ID(mux.Vars(r)["id"])
 	err := m.Delete(id)
-	err = json.NewEncoder(w).Encode(Response{
-		ID:    id,
-		Error: ResponseError{err},
-	})
+	resp := NewResponse(id, task.Task{}, err)
+	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	w.WriteHeader(resp.Error.Code)
 }
 
 var tmpl = template.Must(template.ParseGlob("html/*.html"))
@@ -123,11 +116,8 @@ func htmlHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	t, err := m.Get(id)
-	err = tmpl.ExecuteTemplate(w, "task.html", &Response{
-		ID:    id,
-		Task:  t,
-		Error: ResponseError{err},
-	})
+	resp := NewResponse(id, t, err)
+	err = tmpl.ExecuteTemplate(w, "task.html", resp)
 	if err != nil {
 		log.Println(err)
 		return

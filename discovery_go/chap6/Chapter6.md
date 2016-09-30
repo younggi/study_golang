@@ -66,3 +66,49 @@
       - ```errors.New(...)``` or ```fmt.Errorf(...)```
     * 그러나 에러는 interface이므로 새로운 자료형을 정의하고, Error() 메서드를 구현해 주면 됨.
       - 복잡한 경우에는 구조체로 만들어 사용할 수 있다. (필드를 더 포함할 수 있다.)
+
+  * 반복된 에러 처리 피하기
+    * 에러처리를 단순화하는 테크닉
+    * 에러 발생 시 프로그램 종료
+
+    ```go
+    if err := f(); err != nil {
+      panic(err)
+    }
+    ```
+
+    * 함수로 만들어 중복 제거
+
+    ```go
+    func Must(err error) {
+      if err != nil {
+        panic(err)
+      }
+    }
+    ```
+
+  * 추가 정보와 함께 반복된 처리 피하기
+    * error를 struct로 정의하고 추가 정보를 넣은 후 함수로 만들어 반복을 제거
+
+  * panic과 recover
+    * panic 발생 시 호출 스택을 타고 역순으로 올라가서 프로그램을 종료한다.
+    * defer 도 호출 스택을 역순으로 타고 갈때 처리되는데, 이때 defer 안에 recover를 사용하면 panic이 전파되지 않는다.
+      - recover는 defer 안에서만 효력이 발생한다.
+      - 반환값을 변경하여 지정할 수 있다.
+
+    ```go
+    func f() (i int) {
+      defer func() {
+        if r:= recover(); r != nil {
+          fmt.Println("Recovered in f", r)
+          i = -1  // panic 시 recover할때 반환값 
+        }
+      }()
+      g() // This function panics.
+      return 100
+    }
+
+    func g() {
+      panic("I panic!")
+    }
+    ```
