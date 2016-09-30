@@ -19,7 +19,7 @@
   * 코드가 일단 동작하면 다시 지금까지 작성한 코드를 읽어보고 수정하는 것이 좋습니다.
 
 ### 통일성 있게 파일 나누기
-  * 코드 나누기
+  * 코드 나누기: dependency가 있는 것 끼리 모으고 모은 것 끼리 종속관계를 반영함
     * 데이터 액세스 인터페이스 (accessor.go)
     * 메모리 데이터 엑세스 구현 (mem_accessor.go)
     * 응답 자료형 및 구현 (response.go)
@@ -101,7 +101,7 @@
       defer func() {
         if r:= recover(); r != nil {
           fmt.Println("Recovered in f", r)
-          i = -1  // panic 시 recover할때 반환값 
+          i = -1  // panic 시 recover할때 반환값
         }
       }()
       g() // This function panics.
