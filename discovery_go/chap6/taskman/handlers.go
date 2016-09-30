@@ -9,10 +9,12 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/younggi/study_golang/discovery_go/chap6/taskman/task"
+	"github.com/younggi/study_golang/discovery_go/chap6/taskman/task/mongodao"
 )
 
 // FIXME: m is NOT thread-safe.
-var m = task.NewInMemoryAccessor()
+//var m = task.NewInMemoryAccessor()
+var m = mongodao.New("mongodb://localhost", "taskman", "tasks")
 
 func getTasks(r *http.Request) ([]task.Task, error) {
 	var result []task.Task

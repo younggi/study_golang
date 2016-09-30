@@ -28,4 +28,41 @@
     * 연관된 모듈 찾아 위치 이동
 
 ### 라우터 사용하기
-  * 
+  * Gorilla Web Toolkit mux
+
+## 추가 주제
+
+### HTTP 파일 서버
+  * ```http.FileServer``` 사용
+  * 실제 경로 명 숨기기, 실행 위치에서 상대 경로 지정
+
+  ```go
+  http.Handle(
+    "/css/",
+    http.StripPrefix(
+      "/css/",
+      http.FileServer(http.Dir("path/to/cssfiles")),
+    ),
+  )
+  ```
+
+### 몽고디비와 연동하기
+  * mgo
+
+### 에러 처리
+  * 에러를 반환하고 직접 검사하는 방법 사용
+
+  * 에러에 추가 정보 실어서 보내기
+    * 에러는 interface 자료형임
+      - error 는 Error() 메서드만 있으면 만족
+
+    ```go
+    type error interface{
+      Error() string
+    }
+    ```
+
+    * 에러 생성
+      - ```errors.New(...)``` or ```fmt.Errorf(...)```
+    * 그러나 에러는 interface이므로 새로운 자료형을 정의하고, Error() 메서드를 구현해 주면 됨.
+      - 복잡한 경우에는 구조체로 만들어 사용할 수 있다. (필드를 더 포함할 수 있다.)
