@@ -35,65 +35,62 @@ func getTasks(r *http.Request) ([]task.Task, error) {
 	return result, nil
 }
 
-func apiGetHandler(w http.ResponseWriter, r *http.Request) {
-	id := task.ID(mux.Vars(r)["id"])
-	t, err := m.Get(id)
-	resp := NewResponse(id, t, err)
-	err = json.NewEncoder(w).Encode(resp)
-	if err != nil {
-		log.Println(err)
-	}
-	w.WriteHeader(resp.Error.Code)
-}
-
-func apiPutHandler(w http.ResponseWriter, r *http.Request) {
-	id := task.ID(mux.Vars(r)["id"])
-	tasks, err := getTasks(r)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	for _, t := range tasks {
-		err = m.Put(id, t)
-		resp := NewResponse(id, t, err)
-		err = json.NewEncoder(w).Encode(resp)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		w.WriteHeader(resp.Error.Code)
-	}
-}
-
-func apiPostHandler(w http.ResponseWriter, r *http.Request) {
-	tasks, err := getTasks(r)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	for _, t := range tasks {
+func getAccessorHelper(method string, r *http.Request, t task.Task) (task.ID, task.Task, error) {
+	var err error
+	switch method {
+	case "GET":
+		id := task.ID(mux.Vars(r)["id"])
+		t, err = m.Get(id)
+		return id, t, err
+	case "DELETE":
+		id := task.ID(mux.Vars(r)["id"])
+		err := m.Delete(id)
+		return id, task.Task{}, err
+	case "PUT":
+		id := task.ID(mux.Vars(r)["id"])
+		err := m.Put(id, t)
+		return id, t, err
+	case "POST":
 		id, err := m.Post(t)
+		return id, t, err
+	}
+	return "", task.Task{}, nil
+}
+
+func writeResponseWrapper(w http.ResponseWriter) func(task.ID, task.Task, error) {
+	return func(id task.ID, t task.Task, err error) {
 		resp := NewResponse(id, t, err)
 		err = json.NewEncoder(w).Encode(resp)
 		if err != nil {
 			log.Println(err)
-			return
 		}
 		w.WriteHeader(resp.Error.Code)
 	}
 }
 
-func apiDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	id := task.ID(mux.Vars(r)["id"])
-	err := m.Delete(id)
-	resp := NewResponse(id, task.Task{}, err)
-	err = json.NewEncoder(w).Encode(resp)
-	if err != nil {
-		log.Println(err)
-		return
+func apiHandler(method string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		writeResponseWrapper(w)(getAccessorHelper(method, r, task.Task{}))
 	}
-	w.WriteHeader(resp.Error.Code)
 }
+
+func apiMultiHandler(method string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tasks, err := getTasks(r)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		for _, t := range tasks {
+			writeResponseWrapper(w)(getAccessorHelper(method, r, t))
+		}
+	}
+}
+
+var apiGetHandler = apiHandler("GET")
+var apiPutHandler = apiMultiHandler("PUT")
+var apiPostHandler = apiMultiHandler("POST")
+var apiDeleteHandler = apiHandler("DELETE")
 
 var tmpl = template.Must(template.ParseGlob("html/*.html"))
 
