@@ -64,3 +64,10 @@ func (m *MongoAccessor) Post(t task.Task) (task.ID, error) {
 func (m *MongoAccessor) Delete(id task.ID) error {
 	return m.collection.RemoveId(idToObjectId(id))
 }
+
+// GetAll gets all of the tasks
+func (m *MongoAccessor) GetAll() ([]task.Task, error) {
+	t := []task.Task{}
+	err := m.collection.Find(nil).All(&t)
+	return t, err
+}

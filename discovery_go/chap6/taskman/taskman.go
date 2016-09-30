@@ -24,6 +24,7 @@ func main() {
 	s.HandleFunc(idPattern, apiGetHandler).Methods("GET")
 	s.HandleFunc(idPattern, apiPutHandler).Methods("PUT")
 	s.HandleFunc("/", apiPostHandler).Methods("POST")
+	s.HandleFunc("/", apiGetAllHandler).Methods("GET")
 	s.HandleFunc(idPattern, apiDeleteHandler).Methods("DELETE")
 
 	http.Handle("/", r)

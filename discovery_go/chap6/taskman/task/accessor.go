@@ -9,4 +9,5 @@ type Accessor interface {
 	Put(id ID, t Task) error
 	Post(t Task) (ID, error)
 	Delete(id ID) error
+	GetAll() ([]Task, error)
 }

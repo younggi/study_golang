@@ -75,3 +75,27 @@ func TestInMemoryAccessor_Delete(t *testing.T) {
 		t.Error("Delete Task Error")
 	}
 }
+
+// Test GetAll
+func TestInMemoryAccessor_GetAll(t *testing.T) {
+	ma := NewInMemoryAccessor()
+	for i := 0; i < 10; i++ {
+		_, err := ma.Post(Task{
+			"Test Task",
+			TODO,
+			NewDeadline(time.Now()),
+			i,
+			nil,
+		})
+		if err != nil {
+			t.Error("Post Task Error")
+		}
+	}
+	tasks, err := ma.GetAll()
+	if err != nil {
+		t.Error("GetAll Task Error")
+	}
+	if len(tasks) != 10 {
+		t.Error("GetAll Task Count Error")
+	}
+}

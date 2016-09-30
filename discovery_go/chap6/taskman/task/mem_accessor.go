@@ -56,3 +56,13 @@ func (m *InMemoryAccessor) Delete(id ID) error {
 	delete(m.tasks, id)
 	return nil
 }
+
+// GetAll gets all of the tasks
+func (m *InMemoryAccessor) GetAll() ([]Task, error) {
+	v := make([]Task, len(m.tasks))
+
+	for _, value := range m.tasks {
+		v = append(v, value)
+	}
+	return v, nil
+}

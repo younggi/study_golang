@@ -68,6 +68,21 @@ func writeResponseWrapper(w http.ResponseWriter) func(task.ID, task.Task, error)
 	}
 }
 
+func apiGetAllHandler(w http.ResponseWriter, r *http.Request) {
+	tasks, err := m.GetAll()
+	if err != nil {
+		log.Println(err)
+	}
+	resp := []*Response{}
+	for _, t := range tasks {
+		resp = append(resp, NewResponse("", t, err))
+	}
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
 func apiHandler(method string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		writeResponseWrapper(w)(getAccessorHelper(method, r, task.Task{}))
