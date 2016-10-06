@@ -295,7 +295,141 @@
   * done 채널에 자료를 보내어 신호를 주는 많은 예제가 있는데, close(done)으로 채널을 닫는 것이 더 나은 방법인 경우가 많다.
 
 ## 경쟁 상태
-  * 
+  * 경쟁 상태: 어떤 공유된 자원에 둘 이상의 프로세스가 동시에 접근하여 잘못된 결과가 나올 수 있는 상태
+  * sync, atomic library 활용 방법
+
+### 동시성 디버그
+  * 경쟁 상태 탐지 기능: ```-race``` option 사용
+  * runtime library 활용
+
+    ```go
+    runtime.NumGoroutine()
+    ```
+
+  * panic 발생을 통한 고루틴 스택 추적
+
+### atomic 과 sync.WaitGroup
+  * 연산이 원자성을 띄지 않기 때문에 경쟁 상태 발생 가능
+  * atomic 사용
+
+    ```go
+    atomic.AddInt64(&cnt, -1)
+    atomic.LoadInt64(&cnt)
+    ```
+
+  * 채널을 이용한 다양한 동시성 문제 해결 가능하나, 때로는 WaitGroup을 사용하는 것이 코드 가독성 측면에서 나을수 있음.
+
+  ```go
+  func main() {
+    var wg sync.WaitGroup
+    for i := 0; i < 10; i++ {
+      wg.Add(1)
+      go func() {
+        defer wg.Done()
+        // do something
+      }()
+    }
+    wg.Wait()
+  }
+  ```
+
+### sync.Once
+  * 한 번만 어떤 코드를 수행하고자 할 때 쓸 수 있는 것
+
+  ```go
+  func main() {
+    var once sync.Once
+    var wg sync.WaitGroup
+    for i := 0; i< 3; i++ {
+      wg.Add(1)
+      go func(i int) {
+        defer wg.Done()
+        once.Do(func() {
+          fmt.Println("Initialized")
+        })
+        fmt.Println("Goroutine:", i)
+      }(i)
+    }
+    wg.Wait()
+  }
+  ```
+
+### Mutex와 RWMutex
+  * Mutex: 상호 배타 잠금 기능(동시에 둘 이상의 고루틴에서 코드의 흐름 제어 가능)
+    * 외부 자원에 접근하는 경우 효과적인 경우가 있다.
+    * sync.Mutex
+
+    ```go
+    type Accessor struct {
+      R *Resource
+      L *sync.Mutex
+    }
+
+    Accessor{&Resource, &sync.Mutex{}}
+
+    func (acc *Accessor) Use() {
+      // do something
+      acc.L.Lock()
+      // Use acc.R
+      acc.L.Unlock()
+      // Do something else
+    }
+    ```
+
+  * sync.RWMutex
+    * 쓰기가 많을 경우 상대적으로 Mutex에 비하여 성능 저하
+    * 여러 프로세스가 동시에 읽기 가능
+    * 하나의 프로세스가 쓰는 동안은 모두 읽기 불가
+    * Map 에서 사용하기 적합함
+
+    ```go
+    type ConcurrentMap struct {
+      M map[string]string
+      L *sync.RWMutex
+    }
+
+    func (m ConcurrentMap) Get(key string) string {
+      m.L.RLock()
+      defer m.L.RUnlock()
+      return m.M[key]
+    }
+
+    func (m ConcurrentMap) Set(key, value string) {
+      m.L.Lock()
+      m.M[key] = value
+      defer m.L.Unlock()
+    }
+
+    func main() {
+      m := ConcurrentMap(map[string]string{}, &sync.RWMutex{})
+    }
+    ```
+
+## 문맥 전환
+  * 여러 프로세스 혹은 스레드에서 동작할 때 기존에 하던 작업을 메모리에 보관해두고 다른 작업을 시작하는 것
+    * 병행으로 수행 가능하게 되지만 비용 발생
+  * Go 컴파일러가 문맥 전환 코드를 생성하는 경우
+    * 파일이나 네트워크 연산처럼 시간이 오래 걸리는 입출력 연산이 있을때
+    * 채널에 보내거나 받을때
+    * go로 고루틴이 생성될 때
+    * 가비지 컬랙션 사이클이 지난뒤
+  * 강제 문맥 전환
+
+    ```go
+    time.Sleep(0)
+    ```
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
